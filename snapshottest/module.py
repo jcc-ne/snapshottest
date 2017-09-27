@@ -215,6 +215,20 @@ class SnapshotTest(object):
     def assert_equals(self, value, snapshot):
         assert value == snapshot
 
+    def assert_equals_nparray(self, value, snapshot):
+        import numpy as np
+        array = np.array
+        try:
+            # value.all() == eval(eval(snapshot.__repr__())).__repr__()
+            assert np.equal(
+                value,
+                eval(eval(snapshot.__repr__()))
+			   ).all() == True
+        except:
+            print '\n\ncurrent:', value.__repr__()
+            print '\nsnapshot:', snapshot
+            raise AssertionError()
+
     def assert_match(self, value, name=''):
         self.curr_snapshot = name or self.snapshot_counter
         self.visit()
@@ -224,6 +238,24 @@ class SnapshotTest(object):
                 self.assert_equals(
                     PrettyDiff(value, self),
                     PrettyDiff(prev_snapshot, self)
+                )
+            except:
+                self.fail()
+                raise
+
+        self.store(value)
+        if not name:
+            self.snapshot_counter += 1
+
+    def assert_match_nparray(self, value, name=''):
+        self.curr_snapshot = name or self.snapshot_counter
+        self.visit()
+        prev_snapshot = not self.update and self.module[self.test_name]
+        if prev_snapshot:
+            try:
+                self.assert_equals_nparray(
+                    value,
+                    prev_snapshot.obj
                 )
             except:
                 self.fail()

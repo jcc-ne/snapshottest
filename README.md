@@ -1,3 +1,10 @@
+### nparray branch add quick n dirty numpy array assert-match 
+
+To install this version:
+```pip install --upgrade git+https://github.com/jcc-ne/snapshottest.git@nparray#egg=snapshottest```
+
+
+----
 # SnapshotTest [![travis][travis-image]][travis-url] [![pypi][pypi-image]][pypi-url]
 
 [travis-image]: https://img.shields.io/travis/syrusakbary/snapshottest.svg?style=flat

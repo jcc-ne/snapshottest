@@ -102,6 +102,10 @@ class TestCase(unittest.TestCase):
         self._snapshot = None
 
     def assert_match_snapshot(self, value, name=''):
-        self._snapshot.assert_match(value, name='')
+        self._snapshot.assert_match(value, name)
+
+    def assert_match_snapshot_nparray(self, value, name=''):
+        self._snapshot.assert_match_nparray(value, name)
 
     assertMatchSnapshot = assert_match_snapshot
+    assertMatchSnapshotNPArray = assert_match_snapshot_nparray
