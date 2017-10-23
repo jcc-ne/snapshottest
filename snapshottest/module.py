@@ -122,9 +122,25 @@ class SnapshotModule(object):
         return self.failed_snapshots.add(key)
 
     def save(self):
-        if self.original_snapshot == self.snapshots:
-            # If there are no changes, we do nothing
-            return
+        try:
+            if self.original_snapshot == self.snapshots:
+                # If there are no changes, we do nothing
+                return
+        except ValueError:
+            import pandas as pd
+            all_equal = True
+            for k in self.original_snapshot:
+                try:
+                    if not self.original_snapshot[k] == self.snapshots[k]:
+                        all_equal = False
+                        break
+                except ValueError:
+                    if not self.snapshots[k].equals(
+                        pd.DataFrame(self.original_snapshot[k])):
+                        all_equal = False
+                        break
+            if all_equal:
+                return
 
         snapshot_dir = os.path.dirname(self.filepath)
 
@@ -229,6 +245,19 @@ class SnapshotTest(object):
             print '\nsnapshot:', snapshot
             raise AssertionError()
 
+    def assert_equals_dataframe(self, value, snapshot):
+        import pandas as pd
+        print "testing df"
+        try:
+            # value.all() == eval(eval(snapshot.__repr__())).__repr__()
+            assert value.equals(
+                pd.DataFrame(snapshot)
+			   )
+        except:
+            print '\n\ncurrent:', value.__repr__()
+            print '\nsnapshot:', pd.DataFrame(snapshot)
+            raise AssertionError()
+
     def assert_match(self, value, name=''):
         self.curr_snapshot = name or self.snapshot_counter
         self.visit()
@@ -256,6 +285,24 @@ class SnapshotTest(object):
                 self.assert_equals_nparray(
                     value,
                     prev_snapshot.obj
+                )
+            except:
+                self.fail()
+                raise
+
+        self.store(value)
+        if not name:
+            self.snapshot_counter += 1
+
+    def assert_match_dataframe(self, value, name=''):
+        self.curr_snapshot = name or self.snapshot_counter
+        self.visit()
+        prev_snapshot = not self.update and self.module[self.test_name]
+        if prev_snapshot:
+            try:
+                self.assert_equals(
+                    value.to_dict(orient='records'),
+                    prev_snapshot
                 )
             except:
                 self.fail()

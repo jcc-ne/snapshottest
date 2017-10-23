@@ -45,6 +45,10 @@ class Formatter(object):
             return self.format_str(value, indent)
         elif isinstance(value, (int, float, complex, bool, bytes, set, frozenset, GenericRepr)):
             return self.format_std_type(value, indent)
+        else:
+            import pandas as pd
+            if isinstance(value, pd.DataFrame):
+                return self.format_df_type(value, indent)
 
         return self.format_object(value, indent)
 
@@ -57,6 +61,9 @@ class Formatter(object):
 
     def format_std_type(self, value, indent):
         return repr(value)
+
+    def format_df_type(self, value, indent):
+        return self.format_list(value.to_dict(orient="records"), indent)
 
     def format_object(self, value, indent):
         if self.imports:
