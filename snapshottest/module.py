@@ -122,25 +122,9 @@ class SnapshotModule(object):
         return self.failed_snapshots.add(key)
 
     def save(self):
-        try:
-            if self.original_snapshot == self.snapshots:
-                # If there are no changes, we do nothing
-                return
-        except ValueError:
-            import pandas as pd
-            all_equal = True
-            for k in self.original_snapshot:
-                try:
-                    if not self.original_snapshot[k] == self.snapshots[k]:
-                        all_equal = False
-                        break
-                except ValueError:
-                    if not self.snapshots[k].equals(
-                        pd.DataFrame(self.original_snapshot[k])):
-                        all_equal = False
-                        break
-            if all_equal:
-                return
+        if self.original_snapshot == self.snapshots:
+            # If there are no changes, we do nothing
+            return
 
         snapshot_dir = os.path.dirname(self.filepath)
 
