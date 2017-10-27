@@ -63,7 +63,8 @@ class Formatter(object):
         return repr(value)
 
     def format_df_type(self, value, indent):
-        return self.format_list(value.to_dict(orient="records"), indent)
+        return self.format_list(value.reset_index()
+                                .to_dict(orient="records"), indent)
 
     def format_object(self, value, indent):
         if self.imports:

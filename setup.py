@@ -9,7 +9,7 @@ tests_require = ['six', 'pytest>=3.0', 'pytest-cov', 'nose', 'django>=1.10.6']
 
 setup(
     name='snapshottest',
-    version='0.5.0+0.0.1',
+    version='0.5.0+0.0.2',
     description='Snapshot Testing utils for Python',
     long_description=readme,
     author='Syrus Akbary',
@@ -23,7 +23,7 @@ setup(
         'nose.plugins.0.10':
         ['snapshottest = snapshottest.nose:SnapshotTestPlugin']
     },
-    install_requires=['six>=1.10.0', 'termcolor'],
+    install_requires=['six>=1.10.0', 'termcolor', 'numpy'],
     tests_require=tests_require,
     extras_require={
         'test': tests_require,

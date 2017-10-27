@@ -151,6 +151,8 @@ class SnapshotModule(object):
             snapshot_file.write('''# -*- coding: utf-8 -*-
 # snapshottest: v1 - https://goo.gl/zC4yUc
 from __future__ import unicode_literals
+import numpy as np
+nan = np.nan
 
 {}
 
@@ -231,15 +233,17 @@ class SnapshotTest(object):
 
     def assert_equals_dataframe(self, value, snapshot):
         import pandas as pd
-        print "testing df"
         try:
             # value.all() == eval(eval(snapshot.__repr__())).__repr__()
-            assert value.equals(
-                pd.DataFrame(snapshot)
+            cols = value.columns.tolist()
+            cols.append('index')
+            assert pd.DataFrame(value.reset_index().
+                                to_dict(orient='records'))[cols].equals(
+                pd.DataFrame(snapshot)[cols]
 			   )
         except:
-            print '\n\ncurrent:', value.__repr__()
-            print '\nsnapshot:', pd.DataFrame(snapshot)
+            print '\n\ncurrent: ', value.head()
+            print '\nsnapshot: ', pd.DataFrame(snapshot).head()
             raise AssertionError()
 
     def assert_match(self, value, name=''):
@@ -279,20 +283,24 @@ class SnapshotTest(object):
             self.snapshot_counter += 1
 
     def assert_match_dataframe(self, value, name=''):
+        print "trying to match dataframe...",
         self.curr_snapshot = name or self.snapshot_counter
         self.visit()
         prev_snapshot = not self.update and self.module[self.test_name]
         if prev_snapshot:
+            print "found prev_snapshot",
             try:
-                self.assert_equals(
-                    value.to_dict(orient='records'),
+                self.assert_equals_dataframe(
+                    value,
                     prev_snapshot
                 )
             except:
                 self.fail()
                 raise
+        else:
+            print "Not found prev_snapshot, will store new",
+            self.store(value)
 
-        self.store(value)
         if not name:
             self.snapshot_counter += 1
 
