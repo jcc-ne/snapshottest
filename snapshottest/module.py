@@ -6,6 +6,8 @@ import logging
 from .snapshot import Snapshot
 from .formatter import Formatter
 from .diff import PrettyDiff
+from .generic_repr import GenericRepr
+from numpy import array
 # from .error import SnapshotError
 
 
@@ -233,17 +235,42 @@ class SnapshotTest(object):
 
     def assert_equals_dataframe(self, value, snapshot):
         import pandas as pd
+        import numpy as np
         try:
             # value.all() == eval(eval(snapshot.__repr__())).__repr__()
             cols = value.columns.tolist()
             cols.append('index')
-            assert pd.DataFrame(value.reset_index().
-                                to_dict(orient='records'))[cols].equals(
-                pd.DataFrame(snapshot)[cols]
-			   )
-        except:
+            df_current = pd.DataFrame(value.reset_index().
+                                      to_dict(orient='records'))[cols]
+            df_snapshot = pd.DataFrame(snapshot)[cols]
+
+            for c in df_snapshot:
+                if type(df_snapshot[c].iloc[0]) == GenericRepr:
+                    print "\nGenericRepr type found for {}".format(c)
+                    df_snapshot[c] = df_snapshot[c].apply(lambda x: eval(x.obj))
+
+            #  assert df_current[cols].equals(
+            #      df_snapshot[cols]
+            #   )
+            print "column-to-column matching..."
+            for c in df_current:
+                print "...handling", c, "...",
+                if type(df_current[c].iloc[0]) == np.ndarray:
+                    print "......", c, "is ndarray...",
+                    arr = np.stack(df_current[c].values)
+                    arr_0 = np.stack(df_snapshot[c].values)
+                    assert (arr - arr_0).sum() < 1e-6
+                else:
+                    assert df_current[c].equals(df_snapshot[c])
+                print 'ok'
+
+        except Exception as e:
+            print "Exception:", e.message
+            value.to_pickle('df_current.pkl')
+            df_snapshot.to_pickle('df_snapshot.pkl')
+
             print '\n\ncurrent: ', value.head()
-            print '\nsnapshot: ', pd.DataFrame(snapshot).head()
+            print '\nsnapshot: ', df_snapshot.head()
             raise AssertionError()
 
     def assert_match(self, value, name=''):
