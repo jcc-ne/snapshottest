@@ -238,8 +238,7 @@ class SnapshotTest(object):
         import numpy as np
         try:
             # value.all() == eval(eval(snapshot.__repr__())).__repr__()
-            cols = value.columns.tolist()
-            cols.append('index')
+            cols = list(value.columns)
             df_current = pd.DataFrame(value.reset_index().
                                       to_dict(orient='records'))[cols]
             df_snapshot = pd.DataFrame(snapshot)[cols]
@@ -266,12 +265,16 @@ class SnapshotTest(object):
 
         except Exception as e:
             print "Exception:", e.message
-            value.to_pickle('df_current.pkl')
-            df_snapshot.to_pickle('df_snapshot.pkl')
+            try:
+                value.to_pickle('df_current.pkl')
+                df_snapshot.to_pickle('df_snapshot.pkl')
 
-            print '\n\ncurrent: ', value.head()
-            print '\nsnapshot: ', df_snapshot.head()
-            raise AssertionError()
+                print '\n\ncurrent: ', value.head()
+                print '\nsnapshot: ', df_snapshot.head()
+                raise AssertionError()
+            except UnboundLocalError:
+                print '\n\n current: ', value.head()
+                print '\n snapshot: ', snapshot
 
     def assert_match(self, value, name=''):
         self.curr_snapshot = name or self.snapshot_counter
@@ -314,8 +317,8 @@ class SnapshotTest(object):
         self.curr_snapshot = name or self.snapshot_counter
         self.visit()
         prev_snapshot = not self.update and self.module[self.test_name]
-        if prev_snapshot:
-            print "found prev_snapshot",
+        if prev_snapshot is not None:
+            print "\nfound prev_snapshot",
             try:
                 self.assert_equals_dataframe(
                     value,
@@ -325,7 +328,7 @@ class SnapshotTest(object):
                 self.fail()
                 raise
         else:
-            print "Not found prev_snapshot, will store new",
+            print "\nNot found prev_snapshot, will store new",
             self.store(value)
 
         if not name:

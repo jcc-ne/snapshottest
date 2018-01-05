@@ -12,9 +12,14 @@ class Snapshot(OrderedDict):
                     if not self[k] == other[k]:
                         return False
                 except ValueError:
-                    cols = other.columns
-                    if not other[k].reset_index().equals(
-                        pd.DataFrame(self[k])[cols]):
-                        return False
+                    try:
+                        cols = other.columns
+                        if not other[k].reset_index().equals(
+                            pd.DataFrame(self[k])[cols]):
+                            return False
+                    except AttributeError as e:
+                        print 'Not dataframe'
+                        print self
+                        print other
             return True
 
